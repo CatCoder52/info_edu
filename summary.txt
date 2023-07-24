@@ -1,0 +1,14 @@
+- TMS570LC43X
+4,5 can't access
+
+- DP83630
+the same as ti.com datasheet
+
+- TMS57043X lwip
+8.9 not exist url
+
+- TMS570 keil repository
+1 not exist
+2 can't access
+3 sk website
+
