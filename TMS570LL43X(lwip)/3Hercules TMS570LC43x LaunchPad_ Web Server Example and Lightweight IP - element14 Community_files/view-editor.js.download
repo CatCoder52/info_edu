@@ -1,0 +1,444 @@
+(function() {
+    // entry point
+    function register(context) {
+        let wrapper = $(context.wrapperId);
+        context.wrapper = wrapper;
+        
+        if (isInEditor(context)) {
+
+            // show message (current user has no access)
+            if (!context.isUserHasAccess) {
+                let containerType = getContainerType(context);
+                if (containerType === 'rte') {
+                    wrapper.filter('.se-video-message-no-access').removeClass('hidden');
+                }
+                return;
+            }
+            
+            initEditor(context);
+        } else {
+            // show player
+            wrapper.filter('.se-video-view').removeClass('hidden');
+        }
+    }
+    
+
+    function initEditor(context) {
+        // Get Media data
+        jQuery.telligent.evolution.get({
+            url: jQuery.telligent.evolution.site.getBaseUrl() + 'api.ashx/v2/videomanager/media/{id}.json',
+            data: { 
+                id: context.mediaId
+            },
+            success: function(response) {
+                setEditor(context, response.MediaResult);
+            },
+            error: function(err) {
+                jQuery.telligent.evolution.notifications.show(context.resources.errorContactAdministrator, { type: 'error' });
+                console.error('Editor. Media loading. Error =', err);
+            }
+        });
+    }
+    
+    function setEditor(context, mediaData) {
+        let wrapper = context.wrapper;
+        
+        let containerType = getContainerType(context);
+
+        if (containerType === 'rte') {
+            setRteEditor(context);
+        } else {
+            setMediaEditor(context);
+        }
+        
+        
+        // set Submit & Cancel buttons
+        let submitButton = wrapper.find('.se-editor-submit-button');
+        let cancelButton = wrapper.find('.se-editor-cancel-button');
+        
+        cancelButton.click(function() {
+           if (containerType === 'rte') {
+                let rteCancelButtonQuery = '.mce-foot.mce-container.mce-panel .mce-container-body.mce-abs-layout .mce-widget.mce-btn.mce-abs-layout-item.mce-last.mce-btn-has-text';
+                let rteCancelButton = $(rteCancelButtonQuery);
+                rteCancelButton.click();
+           } else {
+               onMediaEditorCancel(context);
+           }
+        });
+        
+        
+        // set image for external preview button (workaround of removing thumbnail for macro preview)
+        wrapper.find('.se-video-editor-external-icon').attr("src", context.externalIconUrl);
+        
+        
+        // set initial poster image
+        thumbnailUrl = mediaData.Thumbnail;
+        setPreviewImage(context, thumbnailUrl);
+        
+        
+        // set title, description, tags
+        let titleInput = wrapper.find('.se-video-editor-title');
+        let descriptionInput = wrapper.find('.se-video-editor-description');
+        let tagsInput = wrapper.find('.se-video-editor-tags');
+        
+        titleInput.val(mediaData.Title);
+        descriptionInput.val(mediaData.Description);
+        tagsInput.val(mediaData.Tags);
+        
+        
+        // set poster buttons
+        let uploadPosterBtn = wrapper.find('.se-video-editor-og-image-upload');
+        
+        // UPLOAD FUNCTIONALITY
+        let inputUploadElement = document.querySelector(context.wrapperId + ' .se-editor-og-image-input');
+        
+        // open file explorer window
+        uploadPosterBtn.click(function() {
+            inputUploadElement.click();
+        });
+        
+        // on file selected
+        inputUploadElement.addEventListener('change', function() {
+            let files = this.files;
+            
+            if (!Array.isArray(files) && files.length === 0) {
+                return;
+            }
+
+            let file = files[0];
+            let formData = new FormData();
+            formData.append("FileName", file.name);
+            formData.append("File", file);
+            formData.append("CurrentChunk", 0);
+            formData.append("TotalChunks", 1);
+
+            jQuery.telligent.evolution.post({
+                url: context.thumbnailUploadUrl,
+                data: formData,
+                processData: false,
+                contentType: false
+            })
+            .done(function (data) {
+                thumbnailUrl = data.UploadedFile.DownloadUrl;
+                setPreviewImage(context, thumbnailUrl);
+            })
+            .fail(function (err) {
+                jQuery.telligent.evolution.notifications.show(context.resources.errorContactAdministrator, { type: 'error' });
+                console.error('Editor. Upload poster. Error =', err);
+            });
+        }, false);
+
+
+        // SEARCH VISIBILITY
+        let searchVisibility = mediaData.SearchVisibility.toString();
+        let searchVisibilitySelector = wrapper.find('.se-video-editor-search-visibility-select');
+        
+        // set initial value
+        searchVisibilitySelector.val(searchVisibility);
+        
+        // selector on change
+        searchVisibilitySelector.on('change', function() {
+            searchVisibility = this.value;
+        });
+
+
+        // PARENT UI SELECTOR
+        let parentSelector = wrapper.find('.se-video-editor-parent-select');
+        
+        // set initial parent
+        if (mediaData.ParentContentId) {
+            setParentContent(context, mediaData.ParentContentId);
+            parentSelector.val(mediaData.ParentContentId);
+        }
+        
+        // selector on change
+        parentSelector.on('change', function() {
+            let contentId = this.value;
+            setParentContent(context, contentId);
+        });
+        
+
+
+        // click on "submit" button
+        submitButton.click(function() {
+            let title = titleInput.val();
+            let description = descriptionInput.val();
+            let tags = tagsInput.val();
+        
+            // validate empty values
+            if (title === '') {
+                jQuery.telligent.evolution.notifications.show(context.resources.subjectRequired, { type: 'error', width: 300 });
+                return;
+            }
+            
+            if (title.length > 255) {
+                jQuery.telligent.evolution.notifications.show(context.resources.subjectExceededLength, { type: 'error', width: 300 });
+                return;
+            }
+            
+            if (description.length > 250) {
+                jQuery.telligent.evolution.notifications.show(context.resources.descriptionExceededLength, { type: 'error', width: 300 });
+                return;
+            }
+            
+            // validate width & height (only digits)
+            if (containerType === 'rte') {
+                let width = $('#width').val();
+                let height = $('#height').val();
+                
+                if (/^\d+$/gmi.test(width) === false || /^\d+$/gmi.test(height) === false) {
+                    jQuery.telligent.evolution.notifications.show(context.resources.invalidDimensions, { type: 'error', width: 300 });
+                    return;
+                }
+            }
+            
+        
+            let data = {
+                Url: context.mediaUrl,
+                Title: title,
+                Description: description,
+                Tags: tags,
+                Thumbnail: thumbnailUrl,
+                ParentContentId: (context.parentContent !== null) ? context.parentContent.ContentId : null,
+                SearchVisibility: searchVisibility
+            };
+            
+            jQuery.telligent.evolution.put({
+                url: jQuery.telligent.evolution.site.getBaseUrl() + 'api.ashx/v2/videomanager/media.json',
+                data: data,
+                success: function(response) {
+                    if (containerType === 'rte') {
+                        let rteSubmitButtonQuery = '.mce-foot.mce-container.mce-panel .mce-container-body.mce-abs-layout .mce-widget.mce-btn.mce-primary.mce-abs-layout-item.mce-first.mce-btn-has-text';
+                        let rteSubmitButton = $(rteSubmitButtonQuery);
+                        rteSubmitButton.click();
+                    } else {
+                        onMediaEditorCancel(context);
+                    }
+                },
+                error: function(err) {
+                    jQuery.telligent.evolution.notifications.show(context.resources.errorContactAdministrator, { type: 'error' });
+                    console.error('Editor. Submit. Set Media item. Error =', err);
+                }
+            });
+        });
+    }
+    
+    function isInEditor(context) {
+        let containerType = getContainerType(context);
+        
+        return (containerType === 'rte' || containerType === 'media');
+    }
+    
+    function getContainerType(context) {
+        let editorContainer = context.wrapper.filter('.se-video-editor');
+        
+        let rteContainer = editorContainer.closest('div.mcemedia-prev');
+        if (rteContainer && rteContainer.length > 0) {
+            return 'rte';
+        }
+        
+        let mediaEditContainer = editorContainer.closest('.content-fragment.upload-edit-media-gallery-post');
+        if (mediaEditContainer && mediaEditContainer.length > 0) {
+            return 'media';
+        }
+        
+        return 'none';
+    }
+    
+    function setRteEditor(context) {
+        let wrapper = context.wrapper;
+        
+        // hide end-user view
+        wrapper.filter('.se-video-view').addClass('hidden');
+            
+        // set RTE styles
+        let rteContainer = wrapper.filter('.se-video-editor').closest('div.mcemedia-prev');
+        $(context.rteStyles).appendTo(rteContainer);
+        
+        stopFocusPropagation();
+        
+        setRteVideoDimensions(context);
+        
+        // show editor
+        wrapper.filter('.se-video-editor').removeClass('hidden');
+                
+        // set brightcove URL instad of CFS url
+        let urlInput = $('.mce-textbox.mcemedia-url');
+        if (context.macroType === 'CFS') {
+            urlInput.val(context.videoUrl);
+        }
+    }
+    
+    function setRteVideoDimensions(context) {
+        let wrapper = context.wrapper;
+        
+        let VIDEO_DIMENSIONS = {
+            small: { width: '640', height: '360' },
+            medium: { width: '854', height: '480' },
+            large: { width: '1280', height: '720' }
+        }
+        
+        let originWidthInp = $('#width');
+        let originHeightInp = $('#height');
+        
+        let widthInp = wrapper.find('.se-editor-width');
+        let heightInp = wrapper.find('.se-editor-height');
+        let dimensionSelect = wrapper.find('.se-video-editor-dimension-select');
+        
+        function setOptionByValues(width, height) {
+            let dimensionToSet = null;
+            
+            Object.keys(VIDEO_DIMENSIONS).forEach(function(dimension) {
+                let videoDimension = VIDEO_DIMENSIONS[dimension];
+                if (videoDimension.width === width && VIDEO_DIMENSIONS[dimension].height === height) {
+                    dimensionToSet = dimension;
+                }
+            });
+            
+            if (dimensionToSet) {
+                dimensionSelect.val(dimensionToSet);
+            } else {
+                dimensionSelect.val('custom');
+            }
+        }
+        
+        widthInp.val(originWidthInp.val());
+        heightInp.val(originHeightInp.val());
+        
+        setOptionByValues(widthInp.val(), heightInp.val());
+        
+        widthInp.on('keyup', function() {
+            let value = this.value;
+            setOptionByValues(value, heightInp.val());
+            originWidthInp.val(value);
+        });
+        
+        heightInp.on('keyup', function() {
+            let value = this.value;
+            setOptionByValues(widthInp.val(), value);
+            originHeightInp.val(value);
+        });
+        
+        dimensionSelect.on('change', function() {
+            let value = this.value;
+            
+            if (value === 'custom') {
+                return;
+            }
+            
+            let videoDimension = VIDEO_DIMENSIONS[value];
+            widthInp.val(videoDimension.width);
+            heightInp.val(videoDimension.height);
+            
+            originWidthInp.val(videoDimension.width);
+            originHeightInp.val(videoDimension.height);
+        });
+        
+        
+        // show dimension controls
+        wrapper.find('.se-video-editor-dimensions').removeClass('hidden');
+    }
+    
+    function setMediaEditor(context) {
+        let wrapper = context.wrapper;
+        
+        // remove existing edit button
+        $('.field-item.post-attachment a.se-editor-edit-button').remove();
+        
+        let controlPanel = $('.field-item.post-attachment .field-item-input.upload:first');
+        controlPanel.append('<a href="#" class="se-editor-edit-button" style="margin-left: 1em;">Edit</a>');
+        
+        let editButton = $('.field-item.post-attachment a.se-editor-edit-button');
+        
+        let editorContainer = wrapper.filter('.se-video-editor');
+        
+        let curtain = wrapper.filter('.se-video-editor').find('.se-video-modal-curtain');
+        curtain.addClass('se-modal-enabled').removeClass('hidden');
+
+        let modal = wrapper.filter('.se-video-editor').find('.se-video-modal');
+        modal.addClass('se-modal-enabled');
+        
+        let modalTitle = wrapper.filter('.se-video-editor').find('.modal-title');
+        modalTitle.removeClass('hidden');
+        
+        let modalCloseButton = wrapper.filter('.se-video-editor').find('.se-video-modal-close');
+        
+        // show editor
+        editButton.click(function() {
+            editorContainer.removeClass('hidden');
+        });
+        
+        // cancel
+        curtain.click(function() {
+            onMediaEditorCancel(context);
+        });
+        
+        // cancel
+        modalCloseButton.click(function() {
+            onMediaEditorCancel(context);
+        });
+    }
+    
+    function onMediaEditorCancel(context) {
+        let wrapper = context.wrapper;
+        
+        let editorContainer = wrapper.filter('.se-video-editor');
+        editorContainer.addClass('hidden');
+        
+        // re-init editor
+        let innerHtml = editorContainer.html();
+        editorContainer.html(innerHtml);
+        initEditor(context);
+    }
+    
+    function setParentContent(context, contentId) {
+        let wrapper = context.wrapper;
+        
+        let openParentButton = wrapper.find('.se-video-editor-open-content-button');
+        let parentSelector = wrapper.find('.se-video-editor-parent-select');
+    
+        let contents = context.parentContentList.filter(function(content) {
+            return (content.ContentId === contentId);
+        });
+
+        if (contents.length > 0) {
+            let content = contents[0];
+            context.parentContent = content;
+            openParentButton.attr('href', content.Url);
+        }
+    }
+        
+    function setPreviewImage(context, src) {
+        let wrapper = context.wrapper;
+        
+        if (src === null || src === '') {
+            wrapper.find('.se-video-editor-og-image-wrapper').addClass('hidden');
+            wrapper.find('.se-video-editor-og-image-preview-ext').addClass('hidden');
+            return;
+        }
+        
+        wrapper.find('.se-video-editor-og-image-preview').attr('src', src);
+        wrapper.find('.se-video-editor-og-image-wrapper').removeClass('hidden');
+        
+        wrapper.find('.se-video-editor-og-image-preview-ext').attr('href', src);
+        wrapper.find('.se-video-editor-og-image-preview-ext').removeClass('hidden');
+    }
+    
+    function stopFocusPropagation() {
+        // fix "macro duplicating" issue
+        window.addEventListener('focus', function (event) {
+            if (event) {
+                event.stopPropagation();
+            }
+        }, true);
+    }
+
+
+    // widget namespace declaration
+    $.telligent = $.telligent || {};
+    $.telligent.evolution = $.telligent.evolution || {};
+    $.telligent.evolution.widgets = $.telligent.evolution.widgets || {};
+    $.telligent.evolution.widgets.seVideoManagerEditorView = $.telligent.evolution.widgets.seVideoManagerEditorView || {};
+    $.telligent.evolution.widgets.seVideoManagerEditorView.register = register;
+
+}());

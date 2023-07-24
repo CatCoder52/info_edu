@@ -1,0 +1,35 @@
+.header-fragments .layout .layout-content.header-top-content { xoverflow: visible; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner { xoverflow: visible; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context { overflow: visible; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context.with-alert > .alert { display: none; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons { display: -webkit-box; display: -ms-flexbox; display: flex; -ms-flex-flow: nowrap; flex-flow: nowrap; -webkit-box-pack: end; -ms-flex-pack: end; justify-content: flex-end; white-space: nowrap; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related, .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.new { display: block; position: relative; float: none; left: 0; top: 0; margin: .6em 0 0; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li, .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.new ul li { float: none; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a, .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.new ul li a { margin: 0; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a::before, .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.new ul li a::before { margin-right: 5px; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related { margin-right: 5px; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul { overflow: visible !important; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a { display: block; background: #f90; border-radius: .3em; font-size: 1em; font-weight: 600; padding: .6em .9em; line-height: 1.2; text-align: center; -webkit-transition: 300ms; -o-transition: 300ms; transition: 300ms; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a:hover { background: #ffa31a; text-decoration: none; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a::before { width: 14px; height: 14px; display: inline-block; content: "\e816"; position: relative; top: 1px; font-family: Entypo; font-size: 14px; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li .help { position: absolute; left: 0; top: 34px; padding: 8px 16px 8px 32px; font-size: 0.857142857143em; text-decoration: underline; cursor: help; -webkit-transition: all 200ms ease-in-out; -o-transition: all 200ms ease-in-out; transition: all 200ms ease-in-out; }
+
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li .help::before { content: ""; position: absolute; left: 8px; top: 8px; width: 16px; height: 16px; background: transparent url(help.png) 0 0 scroll no-repeat; }
+
+.header-fragments .layout .layout-content.header-top-content.scrolled .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons { position: absolute; xright: 57px; xtop: -52px; }
+
+.header-fragments .layout .layout-content.header-top-content.scrolled .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related .help { opacity: 0; pointer-events: none; cursor: default; }

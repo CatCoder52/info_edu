@@ -1,0 +1,541 @@
+(function() {
+    // set active state for menu item and calculate placement of the next submenu
+    function onItemEnter(node) {
+        // set active state
+        $(node).addClass('active');
+
+        // set expanded state for button
+        $(node).find('button:first').attr('aria-expanded', 'true');
+
+        let nextNode = $(node).find('.submenu:first').get(0);
+        let prevNode = $(node).closest('.submenu').get(0);
+
+        if (!nextNode) {
+            return;
+        }
+
+        $(nextNode).css('display', 'block');
+        $(nextNode).css('visibility', 'hidden');
+
+
+        // calculate inline styles for the next submenu:
+        let top = 0;
+        let left = 0;
+        let maxHeight = 0;
+        let minHeight;
+        let zIndex = 10;
+        let nextDirection = 'right';
+
+        // root node (hover on menu item of 0 level)
+        if (!prevNode && nextNode) {
+            let rect = node.getBoundingClientRect();
+
+            top = rect.top + node.offsetHeight;
+            left = rect.left;
+            maxHeight = 'calc(100% - ' + top + 'px)';
+
+            // set left for submenu list if not enough space (attach to right of the window)
+            if (rect.left + nextNode.offsetWidth > document.body.offsetWidth) {
+                left = (document.body.offsetWidth - nextNode.offsetWidth);
+            }
+        }
+
+        // next nodes (hover on menu item of n levels)
+        if (prevNode && nextNode) {
+            let direction = $(prevNode).data('direction') || 'right';
+
+            let rect = prevNode.getBoundingClientRect();
+            let canPlaceRight = (rect.left + prevNode.offsetWidth + nextNode.offsetWidth < document.body.offsetWidth);
+            let canPlaceLeft = (rect.left - nextNode.offsetWidth >= 0);
+
+            top = prevNode.offsetTop;
+            minHeight = prevNode.offsetHeight;
+            maxHeight = 'calc(100% - ' + top + 'px)';
+
+            if (direction === 'right') {
+                // preferred direction for next submenu is right
+                // growing from left to right (prevNode => nextNode => menu3 => menu4 => ...)
+
+                if (canPlaceRight) {
+                    // place on the right side of the previous menu
+                    left = prevNode.offsetLeft + prevNode.offsetWidth;
+                    nextDirection = 'right';
+                } else if (canPlaceLeft) {
+                    // place on the left side of the previous menu
+                    left = prevNode.offsetLeft - nextNode.offsetWidth;
+                    nextDirection = 'left';
+                } else {
+                    // in this case the menu can't be place fully (right and left), need to detect where is more space:
+                    // from left or right
+                    if (rect.left < (document.body.offsetWidth - (rect.left + prevNode.offsetWidth))) {
+                        left = prevNode.offsetLeft + prevNode.offsetWidth;
+                        nextDirection = 'right';
+                    } else {
+                        left = 0;
+                        nextDirection = 'left';
+                    }
+                }
+            } else {
+                // preferred direction for next submenu is left
+                // growing from right to left (... menu4 <= menu3 <= nextNode <= prevNode)
+
+                if (canPlaceLeft) {
+                    // place on the left side of the previous menu
+                    left = prevNode.offsetLeft - nextNode.offsetWidth;
+                    nextDirection = 'left';
+                } else {
+                    // place on the right side of the previous menu
+                    left = prevNode.offsetLeft + prevNode.offsetWidth;
+                    nextDirection = 'right';
+                }
+            }
+        }
+
+        zIndex += parseInt($(nextNode).data('level'));
+
+        $(nextNode).css('visibility', 'visible');
+        $(nextNode).css('top', top);
+        $(nextNode).css('left', left);
+        $(nextNode).css('max-height', maxHeight);
+        $(nextNode).css('min-height', minHeight);
+        $(nextNode).css('z-index', zIndex);
+        $(nextNode).data('direction', nextDirection);
+    }
+
+
+    // remove active state from menu item and hide submenu
+    function onItemLeave(node) {
+        // set inactive state
+        $(node).removeClass('active');
+
+        // set collapsed state for button
+        $(node).find('button:first').attr('aria-expanded', 'false');
+
+        let submenu = $(node).find('.submenu:first');
+        submenu.css('display', 'none');
+        submenu.css('visibility', 'hidden');
+    }
+
+
+    // hide submenus that is not part of current "active menu tree"
+    function closeInactiveItems(node) {
+        let parentActiveElements = $(node).parents('.list-item.active');
+        let allActiveElements = $(node).closest('nav').find('.list-item.active');
+
+        allActiveElements.each(function() {
+            let isSameActive = false;
+            let active = $(this);
+
+            parentActiveElements.each(function() {
+                let current = $(this);
+
+                if (active.is(current)) {
+                    isSameActive = true;
+                }
+            });
+
+            if (!isSameActive) {
+                onItemLeave(active);
+            }
+        });
+    }
+
+
+    function navigateByUrl(id, href, target, menuItemsMetadata) {
+        let meta = menuItemsMetadata.filter(function(item) { return item.uniqueId === id })[0];
+
+        if (meta.queries.length === 0) {
+            return true;
+        }
+
+        let url = new URL(href);
+        meta.queries.forEach(function(q) {
+            url.searchParams.set(q.key, q.value);
+        });
+
+        window.open(url.toString(), target);
+        return false;
+    }
+
+
+    function attachItemEvents(items, menuItemsMetadata) {
+        // hover on menu item
+        items.hover(function() {
+            let item = $(this).get(0);
+            closeInactiveItems(item);
+            onItemEnter(item);
+        }, function() {
+            let item = $(this).get(0);
+            onItemLeave(item);
+        });
+
+        // click on expand button
+        items.find('> button').click(function() {
+            closeInactiveItems(this);
+
+            // show/hide next submenu
+            let parent = $(this).parent().get(0);
+            let active = $(parent).hasClass('active');
+
+            if (!active) {
+                onItemEnter(parent);
+            } else {
+                onItemLeave(parent);
+            }
+        });
+
+        // click on anchor
+        items.find('a[data-has-url="true"]').click(function(ev) {
+            let id = $(this).attr('id');
+            let target = $(this).attr('target');
+            let href = this.href;
+
+            return navigateByUrl(id, href, target, menuItemsMetadata);
+        });
+    }
+
+
+    // change sub-menu(s) top positions during window scrolling (in case when menu is open)
+    function refreshItemPositions(listContainer) {
+        let rootActiveItem = listContainer.find('> li.list-item.active[data-has-children="true"]');
+
+        if (rootActiveItem.length === 0) {
+            return;
+        }
+
+        let rootNode = rootActiveItem.get(0);
+        let rect = rootNode.getBoundingClientRect();
+        let top = rect.top + rootNode.offsetHeight;
+
+        rootActiveItem.find('.submenu').each(function() {
+            $(this).css('top', Math.round(top));
+        });
+    }
+
+
+    // calculate outer width of 1st level menu item
+    function getItemWidth(container, item) {
+        let clone = item.clone();
+        clone.css('visibility', 'hidden');
+        clone.css('display', 'block');
+        clone.css('position', 'absolute');
+
+        container.append(clone);
+
+        let width = clone.outerWidth();
+        clone.remove();
+
+        return parseFloat(width.toFixed(2));
+    }
+
+
+    function refreshVisibleItems(listContainer, moreItem, menuItemsMetadata) {
+        moreItem.remove();
+
+        let moreItemWidth = getItemWidth(listContainer, moreItem);
+        let listItems = listContainer.find('> .list-item');
+
+        let totalWidth = 0;
+        let needShowMore = false;
+        let visibleItemCount = 0;
+
+        // calculate 1st level items to display
+        listItems.each(function(index, item) {
+            let width = getItemWidth(listContainer, $(item));
+            totalWidth += width;
+
+            if (totalWidth <= listContainer.outerWidth()) {
+                visibleItemCount++;
+            } else {
+                needShowMore = true;
+            }
+        });
+
+
+        if (needShowMore) {
+            totalWidth = 0;
+            visibleItemCount = 0;
+
+            // calculate 1st level items to display (including "More" item)
+            listItems.each(function(index, item) {
+                let width = getItemWidth(listContainer, $(item));
+                totalWidth += width;
+
+                if (totalWidth + moreItemWidth <= listContainer.outerWidth()) {
+                    visibleItemCount++;
+                }
+            });
+
+            // show/hide 2nd level menu items in "More" menu
+            moreItem.find('> .submenu > .list > .list-item').each(function(index, item) {
+                if (index < visibleItemCount) {
+                    $(item).css('display', 'none');
+                } else {
+                    $(item).css('display', 'block');
+                }
+            });
+
+            // set next tabindex for "more" item
+            moreItem.attr('tabindex', visibleItemCount);
+
+            // add "more" to menu list
+            listContainer.append(moreItem);
+
+            // attach events (e.g. hover for "more" and submenus)
+            let moreListItems = moreItem.find('li.list-item').addBack('li.list-item');
+            attachItemEvents(moreListItems, menuItemsMetadata);
+        }
+
+
+        // show/hide 1st level menu items
+        listItems.each(function(index, item) {
+            if (index < visibleItemCount) {
+                $(item).css('display', 'inline-block');
+            } else {
+                $(item).css('display', 'none');
+            }
+        });
+    }
+
+
+    function createFakeItem(fakeTreeHtml) {
+        let fakeItem = $(fakeTreeHtml);
+
+        // hide all submenus inside of "more" item
+        fakeItem.find('.submenu').css('display', 'none').css('visibility', 'hidden');
+
+        return fakeItem;
+    }
+
+
+    // only one item can be selected on the first level
+    function toggleSelected(list) {
+        list.find('> .list-item[data-selected="true"]:not(:first)').attr('data-selected', 'false');
+    }
+
+
+    // global variables
+    let isInitialLoading = true;
+    let hamburgerButton = null;
+    let escPressHandler = null;
+    let windowScrollHandler = null;
+    let windowResizeHandler = null;
+
+
+    function initDesktop(context) {
+        let more = createFakeItem(context.fakeTreeHtml);
+        let root = $(context.wrapper);
+        let list = root.find('nav.menu > .list');
+
+        attachItemEvents(list.find('li.list-item'), context.menuItemsMetadata);
+        refreshVisibleItems(list, more, context.menuItemsMetadata);
+        toggleSelected(list);
+
+        list.css('visibility', 'visible');
+
+        // hide last active submenu on ESC button press (accessibility)
+        escPressHandler = function(e) {
+            // ESC button
+            if (e.keyCode === 27) {
+                let last = list.find('li.list-item.active').last();
+
+                if (last.length) {
+                    onItemLeave(last);
+                }
+            }
+        };
+
+        // on window scroll recalculate position of submenus
+        windowScrollHandler = function() {
+            refreshItemPositions(list);
+        };
+
+        // hide invisible menu items into "More" menu
+        windowResizeHandler = function() {
+            refreshVisibleItems(list, more, context.menuItemsMetadata);
+        };
+
+        $(document).on('keyup', escPressHandler);
+        $(window).on('scroll', windowScrollHandler);
+        $(window).on('resize', windowResizeHandler);
+    }
+
+
+    function initMobile(context) {
+        let root = $(context.wrapper);
+        let container = root.find('.se-megamenu.se-megamenu-custom');
+        let list = root.find('nav.menu > .list');
+        let back = root.find('nav.menu > button.back');
+        let curtain = root.find('.se-megamenu-curtain');
+        let isVerticalContainerOpen = false;
+
+        container.css('display', 'none');
+        container.removeClass('se-megamenu-horizontal');
+        container.addClass('se-megamenu-vertical');
+        toggleSelected(list);
+
+        list.css('visibility', 'visible');
+
+        // waiting for humburger button initialization by Verint scripts
+        setTimeout(function() {
+            hamburgerButton.off().css('visibility', 'visible');
+
+            hamburgerButton.click(function() {
+                if (!isVerticalContainerOpen) {
+                    container.css('display', 'block');
+                    curtain.css('display', 'block');
+                    isVerticalContainerOpen = true;
+                } else {
+                    container.css('display', 'none');
+                    isVerticalContainerOpen = false;
+                }
+            });
+        }, 0);
+
+        curtain.click(function() {
+            if (isVerticalContainerOpen) {
+                container.css('display', 'none');
+                curtain.css('display', 'none');
+                isVerticalContainerOpen = false;
+            }
+        });
+
+        // "back" button click
+        back.click(function() {
+            list.find('.list-item').css('display', 'block');
+            list.find('.list-item').removeClass('active');
+            list.find('.submenu').css('display', 'none').css('visibility', 'hidden');
+            back.css('display', 'none');
+        });
+
+        // click on anchor
+        list.find('.list-item > a[data-has-url="true"]').click(function(ev) {
+            let active = $(this).parent().hasClass('active');
+            let hasChildren = $(this).parent().attr('data-has-children') === 'true';
+
+            // prevent navigation by anchor when menu item has collapsed submenus
+            if (hasChildren && !active) {
+                ev.preventDefault();
+            } else {
+                let id = $(this).attr('id');
+                let target = $(this).attr('target');
+                let href = this.href;
+
+                return navigateByUrl(id, href, target, context.menuItemsMetadata);
+            }
+        });
+
+        // click on menu item
+        list.find('.list-item[data-has-children="true"]').click(function() {
+            $(this).addClass('active');
+
+            // show submenu
+            let submenu = $(this).find('.submenu:first');
+            submenu.css('display', 'block');
+            submenu.css('visibility', 'visible');
+
+            let is0Level = !$(this).closest('.submenu').get(0);
+            if (is0Level) {
+                // hide all 0 level menu items
+                $(this).siblings().css('display', 'none');
+            } else {
+                // hide siblings menu items
+                $(this).siblings().removeClass('active');
+                $(this).siblings().find('.list-item').removeClass('active');
+                $(this).siblings().find('.submenu').css('display', 'none').css('visibility', 'hidden');
+            }
+
+            // show "back" button
+            back.css('display', 'block');
+        });
+    }
+
+
+    // restore current menu HTML to original HTML template
+    // unbind events/restore attributes and values
+    function restore(context, originHtml) {
+        let root = $(context.wrapper);
+        root.html(originHtml);
+
+        if (escPressHandler) {
+            $(document).off('keyup', escPressHandler);
+            escPressHandler = null;
+        }
+
+        if (windowScrollHandler) {
+            $(window).off('scroll', windowScrollHandler);
+            windowScrollHandler = null;
+        }
+
+        if (windowResizeHandler) {
+            $(window).off('resize', windowResizeHandler);
+            windowResizeHandler = null;
+        }
+    }
+
+
+    // entry point
+    function register(context) {
+        let root = $(context.wrapper);
+        let originHtml = root.html();
+
+        // manage media query transition for mobile or desktop views
+        let mql = window.matchMedia('screen and (max-width: ' + context.minWidth + ')');
+
+        let mqlChangeHandler = function(mql) {
+            let isMobile = mql.matches;
+            let isTouch = 'ontouchstart' in document.documentElement;
+            let isDesktopTouch = (!isMobile && isTouch);
+
+            if (!isInitialLoading) {
+                restore(context, originHtml);
+            }
+
+            isInitialLoading = false;
+
+            if (isDesktopTouch) {
+                let isMobileConfigured = root.closest('.content-fragment').hasClass('se-megamenu-mobile-container');
+                if (!isMobileConfigured) {
+                    return;
+                }
+
+                let bar = root.find('.se-megamenu-horizontal-bar');
+                bar.show();
+                hamburgerButton = bar.find('.se-megamenu-touch-trigger');
+                hamburgerButton.off();
+
+                let container = root.find('.se-megamenu.se-megamenu-custom');
+                container.addClass('se-megamenu-touch');
+
+                initMobile(context);
+            } else if (isMobile) {
+                let isMobileConfigured = root.closest('.content-fragment').hasClass('se-megamenu-mobile-container');
+                if (!isMobileConfigured) {
+                    return;
+                }
+
+                hamburgerButton = $(context.mobileMenuTrigger);
+                if (hamburgerButton.length === 0) {
+                    return;
+                }
+                hamburgerButton.off().css('visibility', 'hidden');
+
+
+                initMobile(context);
+            } else {
+                initDesktop(context);
+            }
+        };
+
+        mqlChangeHandler(mql);
+        mql.addEventListener('change', mqlChangeHandler);
+    }
+
+
+    // widget namespace declaration
+    $.telligent = $.telligent || {};
+    $.telligent.evolution = $.telligent.evolution || {};
+    $.telligent.evolution.widgets = $.telligent.evolution.widgets || {};
+    $.telligent.evolution.widgets.ssrmegamenu = $.telligent.evolution.widgets.ssrmegamenu || {};
+    $.telligent.evolution.widgets.ssrmegamenu.register = register;
+}());

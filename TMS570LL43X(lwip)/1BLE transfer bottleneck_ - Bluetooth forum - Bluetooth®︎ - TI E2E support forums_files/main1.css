@@ -1,0 +1,353 @@
+.header-fragments .layout .layout-content.header-top-content {
+	 xoverflow: visible;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner {
+	 xoverflow: visible;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context {
+	 overflow: visible;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context.with-alert > .alert {
+	 display: none;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons {
+	 display: flex;
+	 flex-flow: nowrap;
+	 justify-content: flex-end;
+	 white-space: nowrap;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related, .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.new {
+	 display: block;
+	 position: relative;
+	 float: none;
+	 left: 0;
+	 top: 0;
+	 margin: 0.1em 0 0;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li, .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.new ul li {
+	 float: none;
+}
+
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a, .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.new ul li a {
+	 margin: 0;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a::before, .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.new ul li a::before {
+	 margin-right: 5px;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related {
+	 margin-right: 5px;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul {
+	 overflow: visible !important;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a {
+	 display: block;
+	 background: #f90;
+	 border-radius: 0.3em;
+	 font-size: 1em;
+	 font-weight: 600;
+	 padding: 0.6em 0.9em;
+	 line-height: 1.2;
+	 text-align: center;
+	 transition: 300ms;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a:hover {
+	 background: #ffa31a;
+	 text-decoration: none;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a::before {
+	 width: 14px;
+	 height: 14px;
+	 display: inline-block;
+	 content: "\e816";
+	 position: relative;
+	 top: 1px;
+	 font-family: Entypo;
+	 font-size: 14px;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li .help {
+	 position: absolute;
+	 left: 0;
+	 top: 34px;
+	 padding: 8px 16px 8px 32px;
+	 font-size: 0.8571428571em;
+	 text-decoration: underline;
+	 cursor: help;
+	 transition: all 200ms ease-in-out;
+}
+ .header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li .help::before {
+	 content: "";
+	 position: absolute;
+	 left: 8px;
+	 top: 8px;
+	 width: 16px;
+	 height: 16px;
+	 background: transparent url(help.png) 0 0 scroll no-repeat;
+}
+ .header-fragments .layout .layout-content.header-top-content.scrolled .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons {
+	 position: absolute;
+	 xright: 57px;
+	 xtop: -52px;
+}
+ .header-fragments .layout .layout-content.header-top-content.scrolled .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related .help {
+	 opacity: 0;
+	 pointer-events: none;
+	 cursor: default;
+}
+/* extra */
+.content-fragment.group-banner .banner.context {
+    /*padding: 0 3%;*/
+    height: 3.6em;
+    min-height: 0;
+}
+.banner.context a {
+  color: white;
+  position: relative;
+  display: block;
+}
+  .content-fragment.group-banner .banner.context .name A, .content-fragment.group-banner .banner.context .description A {
+    color: #333333;
+    font-weight: 600;
+    display: inline;
+    position: relative;
+}
+.content-fragment.group-banner .banner.context .avatar IMG, .content-fragment.group-banner .banner.context>.avatar {
+    display: none;
+}
+.banner.context .name, .banner.context .description {
+    -webkit-transition: 0.15s;
+    -moz-transition: 0.15s;
+    transition: 0.15s;
+    float: left;
+    margin: 0;
+    font-size: 18.2px;
+    position: relative;
+    line-height: 88px;
+    white-space: nowrap;
+    -webkit-font-smoothing: antialiased;
+    color: #7b7b7b;
+    font-weight: 600;
+}
+.content-fragment.group-banner .banner.context .name, .content-fragment.group-banner .banner.context .description {
+    margin: 0;
+    font-size: 15px;
+}
+
+.banner.context .description {
+    padding-left: 15px;
+}
+.content-fragment.group-banner .banner.context .name A, .content-fragment.group-banner .banner.context .description A {
+    color: #333333;
+}
+.banner.context .description a:before, .banner.context .description a .ie7_before {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    content: "\e875";
+    font-family: Entypo;
+    font-size: 14px;
+    line-height: 14px;
+    margin-right: 2px;
+    position: relative;
+    top: 1px;
+  
+}
+
+banner.context .description a:before {
+    top: -2px;
+    color: #999999;
+}
+
+.banner.context .navigation-list.applications ul {
+    width: auto !important;
+    min-width: 0 !important;
+    display: table !important;
+}
+.banner.context .navigation-list.applications ul li {
+    float: left;
+    height: 100%;
+    overflow: hidden;
+}
+.content-fragment.group-banner .banner.context .navigation-list UL A {
+    font-size: 1em;
+    border-radius: .3em;
+    font-weight: 600;
+    width: auto;
+    line-height: 1.2;
+    margin: 0.6em 0 0 1.5em;
+}
+
+.content-fragment.group-banner .banner.context .navigation-list.applications UL A.more {
+    overflow: visible;
+    display:block;
+}
+.banner.context .navigation-list.applications ul a.more:before, .banner.context .navigation-list.applications ul a.more .ie7_before {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    content: "\e877";
+    font-family: Entypo;
+    font-size: 14px;
+    line-height: 14px;
+    margin-right: 2px;
+    position: relative;
+    top: 1px;
+  
+}
+.links-popup-panel ul {
+    max-height: 500px;
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 3px;
+    background-color: white;
+    list-style: none;
+    padding: 0px;
+    margin: 0px;
+    overflow: hidden;
+    border: 1px solid #118899;
+}
+.links-popup-panel > UL {
+    background-color: white;
+    border: 1px solid #d9f1f4;
+    border-radius: .3em;
+    padding: 0;
+}
+
+.links-popup-panel > UL > LI > A, .links-popup-panel > UL > LI > SPAN > A, .links-popup-panel ul>li>span>a.selected, .links-popup-panel ul a.selected,
+.links-popup-panel ul>li>span>a, .links-popup-panel ul a
+{
+    color: #555555;
+    font-size: 1em;
+    line-height: 1.8;
+    font-weight: 400;
+    padding: 0.3em 1.2em;
+    /*text-align: left !important;*/
+}
+.links-popup-panel ul>li>span>a.selected, .links-popup-panel ul a.selected
+{
+    background-color: inherit;
+}
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons
+{
+    position: absolute;
+    right: 10px;
+    top:6px;
+}
+.header-fragments .layout .layout-content.header-top-content .layout-region-inner .content-fragment.group-banner .banner.context .new-buttons .navigation-list.related ul li a:hover {
+    background: #ffa31a;
+    text-decoration: none;
+}
+.content-fragment.group-banner .banner.context .navigation-list.new UL A
+{
+    background-color: #cc0000;
+    font-size: 1em;
+    border-radius: .3em;
+    font-weight: 600;
+    width: auto;
+    line-height: 1.2;
+}
+
+.content-fragment.group-banner .banner.context .navigation-list.new ul a.private { background-color: #999999; }
+
+@media screen and (min-width: 768px)
+{
+.banner.context .name, .banner.context .description {
+    line-height: 3;
+}
+.banner.context .navigation-list.applications UL A.more {
+    color: #555555;
+    background-color: #e0e0e0;
+    border: none !important;
+    padding: 0.6em 0.9em;
+    margin: 0.1em 0 0 1.5em;
+}
+.banner.context .navigation-list.new ul a:before, .banner.context .navigation-list.new ul a .ie7_before {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    content: "\e816";
+    font-family: Entypo;
+    font-size: 14px;
+    line-height: 14px;
+    margin-right: 10px;
+    position: relative;
+    top: 1px;
+    
+}
+.banner.context .navigation-list.new UL A {
+    font-size: 1em;
+    line-height: 1.2;
+    padding: 0.6em 0.9em;
+    width: auto;
+}
+}
+@media only screen and (max-width: 670px){
+    .banner.context .navigation-list.applications UL A.more {
+    color: #555555;
+    background-color: #e0e0e0;
+    border: none !important;
+    padding: 0.6em 0.9em;
+    margin: 0.1em 0 0 1.5em;
+}
+.banner.context .navigation-list.new ul a:before, .banner.context .navigation-list.new ul a .ie7_before {
+    width: 9px;
+    height: 14px;
+    display: inline-block;
+    content: "\e816";
+    font-family: Entypo;
+    font-size: 14px;
+    line-height: 14px;
+    margin-right: 4px;
+    position: relative;
+    top: 1px;
+    
+}
+ .content-fragment.group-banner .banner.context .navigation-list.new UL A
+{
+    font-size:12px;
+   margin: 0px;
+    margin-left: 5px;
+    padding: 3px;
+    line-height: 1.1;
+    height:44px;
+    text-align:center;
+}
+.content-fragment.group-banner .banner.context .navigation-list.applications UL A.more {
+    height:44px;
+    line-height: 1.1;
+}
+.header-fragments {
+    min-height: 92px;
+}
+
+.content-fragment.group-banner .banner.context .navigation-list UL A.relatedq
+{
+    display: block; 
+    background: #f90;
+    border-radius: .3em;
+    font-size: 1em;
+    font-weight: 600;
+    padding: .6em .9em;
+    line-height: 1.2;
+    text-align: center;
+    -webkit-transition: 300ms;
+    -o-transition: 300ms;
+    transition: 300ms;
+    top: 38px;
+    margin-bottom: 40px;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    padding: 5px !important;
+    margin-left: 5px !important;
+}
+.tigb{
+    width:58%;
+    padding-left:5px;
+
+}
+.tigb .description, .tigb .name
+{
+    line-height:21px !important;
+    font-size:14px !important;
+}
+}
